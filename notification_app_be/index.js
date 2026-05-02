@@ -1,9 +1,9 @@
 const express = require("express");
 const notificationRoutes = require("./routes/notifications");
 
-const app = express();
+const router = express.Router();
 
-app.use(express.json());
-app.use("/api", notificationRoutes);
+router.use(express.json());
+router.use(notificationRoutes);
 
-module.exports = app;
+module.exports = router;
