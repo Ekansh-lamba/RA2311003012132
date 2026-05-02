@@ -16,7 +16,9 @@ async function createNotification(req, res) {
 async function getNotificationsByUserId(req, res) {
   await Log("backend", "info", "controller", "GET /notifications/:userId called");
   try {
-    const notifications = await service.getNotificationsByUserId(req.params.userId);
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const offset = parseInt(req.query.offset, 10) || 0;
+    const notifications = await service.getNotificationsByUserId(req.params.userId, limit, offset);
     return res.status(200).json(notifications);
   } catch (err) {
     await Log("backend", "error", "controller", err.message || "getNotifications error");

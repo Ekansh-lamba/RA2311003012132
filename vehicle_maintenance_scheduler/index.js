@@ -10,23 +10,27 @@ router.get("/run", async (req, res) => {
     await Log("backend", "info", "controller", "Scheduler run initiated");
 
     const depotsResponse = await axios.get(process.env.DEPOT_API_URL, {
-      headers: { Authorization: process.env.AUTH_TOKEN },
+      headers: { Authorization: `Bearer ${process.env.AUTH_TOKEN}` },
     });
-    const depots = depotsResponse.data;
+    const depots = depotsResponse.data.depots;
     await Log("backend", "info", "service", "Depots fetched");
 
     const vehiclesResponse = await axios.get(process.env.VEHICLE_API_URL, {
-      headers: { Authorization: process.env.AUTH_TOKEN },
+      headers: { Authorization: `Bearer ${process.env.AUTH_TOKEN}` },
     });
-    const allTasks = vehiclesResponse.data;
+    const allTasks = vehiclesResponse.data.vehicles.map((v) => ({
+      id: v.TaskID,
+      duration: v.Duration,
+      impact: v.Impact,
+    }));
     await Log("backend", "info", "service", "Tasks fetched");
 
     const results = depots.map((depot) => {
-      const selectedTasks = knapsack(depot.mechanicHours, allTasks);
+      const selectedTasks = knapsack(depot.MechanicHours, allTasks);
       const totalImpact = selectedTasks.reduce((sum, t) => sum + t.impact, 0);
       const totalDuration = selectedTasks.reduce((sum, t) => sum + t.duration, 0);
       return {
-        depotId: depot.id,
+        depotId: depot.ID,
         selectedTasks,
         totalImpact,
         totalDuration,

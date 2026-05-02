@@ -1,10 +1,10 @@
-const { v4: uuidv4 } = require("uuid");
+const { randomUUID } = require("crypto");
 
 const store = [];
 
 function createNotification(data) {
   const notification = {
-    id: uuidv4(),
+    id: randomUUID(),
     userId: data.userId,
     type: data.type,
     message: data.message,
@@ -16,8 +16,10 @@ function createNotification(data) {
   return notification;
 }
 
-function getNotificationsByUserId(userId) {
-  return store.filter((n) => n.userId === userId);
+function getNotificationsByUserId(userId, limit = 10, offset = 0) {
+  return store
+    .filter((n) => n.userId === userId)
+    .slice(offset, offset + limit);
 }
 
 function markAsRead(notificationId) {

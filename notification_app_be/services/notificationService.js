@@ -1,6 +1,8 @@
 const repo = require("../repositories/notificationRepository");
 const Log = require("../../logging_middleware/index");
 
+const cache = {};
+
 async function createNotification(data) {
   await Log("backend", "info", "service", "createNotification called");
   const result = repo.createNotification(data);
@@ -8,13 +10,27 @@ async function createNotification(data) {
     await Log("backend", "error", "service", "createNotification failed");
     throw { status: 500, message: "Failed to create notification" };
   }
+  
+  Object.keys(cache).forEach(key => {
+    if (key.startsWith(data.userId + "-")) delete cache[key];
+  });
+
   await Log("backend", "info", "service", "createNotification succeeded");
   return result;
 }
 
-async function getNotificationsByUserId(userId) {
+async function getNotificationsByUserId(userId, limit = 10, offset = 0) {
   await Log("backend", "info", "service", "getNotificationsByUserId called");
-  const result = repo.getNotificationsByUserId(userId);
+  
+  const cacheKey = `${userId}-${limit}-${offset}`;
+  if (cache[cacheKey]) {
+    await Log("backend", "info", "service", "getNotificationsByUserId cache hit");
+    return cache[cacheKey];
+  }
+
+  const result = repo.getNotificationsByUserId(userId, limit, offset);
+  cache[cacheKey] = result;
+  
   await Log("backend", "info", "service", "getNotificationsByUserId succeeded");
   return result;
 }
